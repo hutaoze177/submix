@@ -1,6 +1,8 @@
 name: rebuild subscription
 
 on:
+  push:
+    branches: [main]
   schedule:
     - cron: '17 3 * * *'      # 每天 UTC 03:17（北京时间 11:17）
   workflow_dispatch:
