@@ -204,7 +204,7 @@ diff 时只看到 `hop-interval` 差异就是没变。要判断「内容是否�
 
 ### 坑 1：DNS 不能换成公共 DNS ⚠️ 最致命
 
-机场节点域名（`*.tls.node.example.com`、`*.quic.node2.example.com`）必须用机场自己的私有 DoH 解析：
+机场节点域名（`*.tls.<机场节点域>`、`*.quic.<机场节点域>`）必须用机场自己的私有 DoH 解析：
 
 ```
 https://<机场私有 DoH 入口 1>/dns-query/<uuid>
