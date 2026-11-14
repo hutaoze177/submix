@@ -57,6 +57,7 @@ python3 submix.py build \
   --land  land.yaml \
   --rules rules/ai-meta.json \
   --pin-land "US-静态23" \
+  --demote "hl_xxxxxxxx" \
   --dns-fallback \
   -o sub.yaml
 ```
@@ -71,9 +72,11 @@ python3 submix.py build \
 | `--auto-group` | `前置-自动` | 自动测速子组名 |
 | `--land-group` | `落地-US-ISP` | 落地组名 |
 | `--pin-land` | 无 | 把名字**含该子串**的落地节点排到组首（锁出口 IP，可命中多个） |
+| `--demote` | 无 | 把名字 / `username`（账号 ID）/ `server` **含该子串**的落地节点排到组末，**可重复**。用于账号已 suspended 或长期超时的死节点 |
 | `--port` | `7890` | mixed-port |
 | `--dns-fallback` | 关 | 给 `nameserver` 追加国内 DoH 兜底并在末尾加 `1.1.1.1#前置组` |
-| `--no-dns` | 关 | ⚠️ **当前是空参数**，传了不会删 DNS 段，见第 6 节 |
+
+排序优先级：**先 `--demote` 排末，再 `--pin-land` 置顶**。同一节点同时命中两者时，置顶生效。
 
 支持的订阅格式（自动探测，按顺序尝试）：
 
@@ -172,8 +175,8 @@ proxy-groups
 └─ 落地-US-ISP select  [<174 个节点，--pin-land 命中的在最前>]
 
 rules  86 条
-├─ 落地-US-ISP  46（45 个 land 域名 + raw 里 1 条 nodebuf.com）
-├─ 前置-机场    34 + MATCH 兜底 1
+├─ 落地-US-ISP  45（land 模板里的全部域名）
+├─ 前置-机场    35（air 7 + raw 里 28）+ MATCH 兜底 1
 ├─ DIRECT       4（sub.your-sub-provider.example、private、cn、CN）
 └─ no-resolve   1（GEOIP,LAN）
 ```
@@ -262,17 +265,18 @@ FlClash 重启 / 切配置后 fake-ip 映射表清空，App 还攥着旧假 IP �
 试过用 `sniffer`（从 TLS SNI 还原域名）治本，用户要求回退（commit `eb16f76`，原实现在 `84d067b`）。
 **除非用户主动提，不要重新启用。**
 
-### 坑 7：`--no-dns` 是空参数（已知缺陷，待修）
+### 坑 7：不要给 build 加「禁用 DNS」的开关
 
-`submix.py` 里：
+早期版本有个 `--no-dns` 参数，实现是空的：
 
 ```python
 if args.no_dns and "dns" in dns:
-    pass          # ← 什么都不做
+    pass          # ← 什么都不做，参数看着能用其实没用
 ```
 
-传了不会删 `dns` 段。需要「完全不输出 DNS」时，目前只能手工在产物里删，或改这行代码。
-**不要照 README 旧版的描述以为它能用。**
+2026-11-14 直接**删掉**了这个参数，而不是补实现 —— 因为这个场景里「禁用 DNS」没有任何正当用途：
+坑 1 说 DNS 是命根子，删掉 `dns` 段后机场节点域名无从解析，只会把链路搞挂。
+以后若有人（或模型）又想加回来，先想清楚要解决什么问题。
 
 ### 坑 8：组名改名要全链路同步
 
@@ -312,7 +316,8 @@ jobs:
 |---|---|
 | `FRONT_URL` | 机场订阅地址 |
 | `LAND_URL` | 虾蹬订阅地址 |
-| `SUB_TOKEN` | 有 `hutaoze177/sub` 写权限的 PAT |
+| `SUB_TOKEN` | 有产物仓库写权限的 PAT |
+| `DEMOTE_IDS` | 要排到组末的死节点关键字，逗号分隔（节点名 / 账号 ID / server 片段），可留空 |
 
 注意事项：
 
@@ -353,6 +358,8 @@ curl -x http://127.0.0.1:7890 -o /dev/null -w "%{http_code}\n" https://api.anthr
 |---|---|
 | 新增漏网域名 | 改 `rules/ai-meta.json` 的 `land`/`air` → build → verify → push |
 | 换默认落地 IP | 改 `--pin-land` 关键字；**先跟用户确认**，换 IP 会让 AI 账号看到变更 |
+| 单个节点坏了 | 加 `--demote "<节点名或账号ID>"` 排到组末，**比删节点安全**（订阅更新后还在） |
+| 整块账号坏了 | `--demote "hl_xxxxxxxx"`（账号 ID 在节点 `username` 里），一次排掉该账号全部节点 |
 | 精简死节点 | 按第 8 节测完，从落地快照 `land.yaml` 删掉再 build |
 | 降权 token | 换 fine-grained PAT，只授 `hutaoze177/sub` 的 `Contents: Read and write` |
 | 升级内核 | 换 `/tmp/mihomo` 并重跑 verify，产物格式以客户端版本为准 |

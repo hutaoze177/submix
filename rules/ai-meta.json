@@ -1,5 +1,5 @@
 {
-  "_comment": "只有 AI 与 Meta 身份流量走住宅；Meta 的内容 CDN 也归住宅，避免同一 App 的 API/CDN IP 分叉",
+  "_comment": "只有 AI 与 Meta 身份流量走住宅；Meta 的内容 CDN 也归住宅，避免同一 App 的 API/CDN IP 分叉；nodebuf.com 是虾蹬自家服务域名，按「只有 Claude/Muse 走住宅」的要求归机场（2026-11-14）",
   "air": [
     "cdn.oculus.com",
     "cdn2.oculus.com",
@@ -85,7 +85,7 @@
     "DOMAIN-SUFFIX,nflximg.net,前置-机场",
     "DOMAIN-SUFFIX,nflxext.com,前置-机场",
     "DOMAIN-SUFFIX,spotifycdn.com,前置-机场",
-    "DOMAIN-SUFFIX,nodebuf.com,落地-US-ISP"
+    "DOMAIN-SUFFIX,nodebuf.com,前置-机场"
   ],
   "match": "前置-机场"
 }

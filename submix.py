@@ -16,6 +16,7 @@ submix —— 链式代理订阅合成工具
   python3 submix.py build --front air.yaml --land land.yaml -o sub.yaml
   python3 submix.py build --front https://机场订阅 --land ./落地.yaml --rules rules/ai-meta.json -o sub.yaml
   python3 submix.py push  -f sub.yaml --repo user/repo --token-file ~/.gh_token
+  python3 submix.py build --front air.yaml --land land.yaml --demote hl_xxx -o sub.yaml
   python3 submix.py verify -f sub.yaml --mihomo /tmp/mihomo
 """
 import argparse
@@ -216,6 +217,33 @@ def build(args):
     proxies = front_nodes + land_clean
     fnames = [p["name"] for p in front_nodes]
     lnames = [p["name"] for p in land_clean]
+    by_name = {p["name"]: p for p in land_clean}
+
+    # 已知失效的落地（账号 suspended / 长期超时）：排到组末，避免误选
+    # 允许逗号分隔多个关键字，空白/空串一律忽略（CI 里 secret 为空时不能误伤全部节点）
+    demote_kw = []
+    for chunk in (args.demote or []):
+        for kw in str(chunk).split(","):
+            kw = kw.strip()
+            if kw and kw not in demote_kw:
+                demote_kw.append(kw)
+    if demote_kw:
+        hit = []
+        for kw in demote_kw:
+            for n in lnames:
+                if n in hit:
+                    continue
+                p = by_name.get(n, {})
+                blob = " ".join((n, str(p.get("username") or ""),
+                                 str(p.get("server") or "")))
+                if kw in blob:
+                    hit.append(n)
+        if hit:
+            for n in hit:
+                lnames.remove(n)
+            lnames = lnames + hit
+            print(f"  落地置末：{len(hit)} 个命中 {', '.join(demote_kw)}"
+                  f"（{hit[0]} …）")
 
     if args.pin_land:
         hit = [n for n in lnames if args.pin_land in n]
@@ -235,8 +263,6 @@ def build(args):
         # 干净的 DoH 放最后、经前置出网
         ns.append(f"https://1.1.1.1/dns-query#{args.front_group}")
         dns["nameserver"] = ns
-    if args.no_dns and "dns" in dns:
-        pass
 
     cfg = {
         "mixed-port": args.port,
@@ -371,7 +397,8 @@ def main():
     b.add_argument("--port", type=int, default=7890)
     b.add_argument("--dns-fallback", action="store_true",
                    help="给 nameserver 追加国内 DoH 兜底（前置 DNS 缺 nameserver 时用）")
-    b.add_argument("--no-dns", action="store_true")
+    b.add_argument("--demote", action="append",
+                   help="把名字/账号/服务器含该字符串的落地节点排到组末，可多次（已知死节点）")
 
     v = sub.add_parser("verify", help="用 mihomo 内核校验")
     v.add_argument("-f", "--file", required=True)
