@@ -50,7 +50,11 @@
     "about.meta.com",
     "workplace.com",
     "oculus.com",
-    "horizon.meta.com"
+    "horizon.meta.com",
+    "metaaivm.com",
+    "metaai.com",
+    "meta-cdn.com",
+    "metacdn.com"
   ],
   "raw": [
     "DOMAIN,sub.your-sub-provider.example,DIRECT",
