@@ -252,6 +252,21 @@ def build(args):
     if dns:
         cfg["dns"] = dns
 
+    # 域名嗅探：App 拿着 fake-ip / 纯 IP 发起连接时，从 TLS SNI 或 HTTP Host
+    # 还原出真实域名，再按 DOMAIN-SUFFIX 规则匹配。
+    # 没有这个，fake-ip 映射表一旦丢失就会退化到 MATCH 兜底（走错链路）。
+    cfg["sniffer"] = {
+        "enable": True,
+        "parse-pure-ip": True,
+        "override-destination": False,
+        "sniff": {
+            "HTTP": {"ports": [80, "8080-8880"], "override-destination": True},
+            "TLS": {"ports": [443, 8443]},
+            "QUIC": {"ports": [443, 8443]},
+        },
+        "skip-domain": ["+.push.apple.com", "+.apple.com", "Mijia Cloud"],
+    }
+
     cfg["proxies"] = proxies
     cfg["proxy-groups"] = [
         {"name": args.front_group, "type": "select", "proxies": [args.auto_group] + fnames},
