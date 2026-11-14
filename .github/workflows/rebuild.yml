@@ -1,0 +1,58 @@
+name: rebuild subscription
+
+on:
+  schedule:
+    - cron: '17 3 * * *'      # 每天 UTC 03:17（北京时间 11:17）
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: pip install pyyaml
+
+      - name: Build config
+        env:
+          FRONT: ${{ secrets.FRONT_URL }}
+          LAND: ${{ secrets.LAND_URL }}
+        run: |
+          set -e
+          mkdir -p out
+          python3 submix.py build \
+            --front "$FRONT" \
+            --land "$LAND" \
+            --rules rules/ai-meta.json \
+            --pin-land "US-静态23" \
+            --dns-fallback \
+            -o out/sub.yaml
+
+      - name: Verify with mihomo
+        run: |
+          set -e
+          URL=$(python3 -c "
+import json,urllib.request
+r=json.load(urllib.request.urlopen('https://api.github.com/repos/MetaCubeX/mihomo/releases/latest'))
+a=[x for x in r['assets'] if x['name'].startswith('mihomo-linux-amd64-') and x['name'].endswith('.gz')][0]
+print(a['browser_download_url'])")
+          curl -sL -o mihomo.gz "$URL"
+          gunzip -f mihomo.gz && chmod +x mihomo
+          ./mihomo -t -f out/sub.yaml -d /tmp/mh
+
+      - name: Push to subscription repo
+        env:
+          GH_TOKEN: ${{ secrets.SUB_TOKEN }}
+        run: |
+          set -e
+          python3 submix.py push -f out/sub.yaml \
+            --repo hutaoze177/sub --path sub.yaml \
+            --message "auto rebuild $(date -u +%Y-%m-%dT%H:%MZ)"
