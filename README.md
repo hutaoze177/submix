@@ -366,7 +366,105 @@ curl -x http://127.0.0.1:7890 -o /dev/null -w "%{http_code}\n" https://api.anthr
 
 ---
 
-## 10. 安全与敏感信息
+## 10. 换机场 / 换落地：操作清单
+
+换服务商不是"改一个 URL"。**先在本地试跑，验证通过再动 Actions Secret**，出问题随时能退。
+
+### 场景 A：只换前置机场（落地不变）
+
+```bash
+# 1. 先存成本地快照，别急着改 Secret
+curl -A "clash" -o new-air.yaml "<新机场订阅URL>"
+
+# 2. 检查 DNS —— 最容易翻车的一步
+python3 -c "import yaml;print(yaml.safe_load(open('new-air.yaml')).get('dns'))"
+```
+
+- 输出里有 `proxy-server-nameserver`（指向该机场私有 DoH）→ ✅ 能直接用
+- 输出 `None` → ⚠️ 该机场没给私有 DNS。`--dns-fallback` 只补公共 DoH 兜底，
+  若新机场节点域名依赖私有解析，anytls / hysteria2 会全部握手失败。
+  **处理**：照该机场文档把 DoH 写进 `new-air.yaml` 的 `dns.proxy-server-nameserver`，再 build。
+
+```bash
+# 3. 本地构建 + 校验
+python3 submix.py build --front new-air.yaml --land land.yaml \
+  --rules rules/ai-meta.json --pin-land "US-静态23" --demote "hl_xxxxxxxx" \
+  --dns-fallback -o test.yaml
+python3 submix.py verify -f test.yaml --mihomo /tmp/mihomo
+
+# 4. 语法通过 ≠ 节点能用，一定要抽测连通
+#    （起内核后）
+curl -x http://127.0.0.1:7890 -o /dev/null -w "%{http_code}\n" \
+  https://www.gstatic.com/generate_204      # 204 = 通，000 = 别上线
+```
+
+```bash
+# 5. 确认没问题再改 Secret
+gh secret set FRONT_URL -R hutaoze177/submix --body "<新机场订阅URL>"
+# 6. 手动触发 rebuild，确认 run 绿、落地首位没变
+```
+
+### 场景 B：只换落地服务商（前置机场不变）
+
+```bash
+python3 -c "
+import yaml;d=yaml.safe_load(open('new-land.yaml'))
+print('节点', len(d.get('proxies') or []))"
+```
+
+要确认三件事：
+
+1. 节点类型是 `http` / `socks5` 这类能挂 `dialer-proxy` 的（`direct` / `reject` 会被自动剔除）
+2. 账号信息在 `username` 里（`--demote` 按它匹配死节点）
+3. 它自带的「前置候选」组会被自动排除（组名含"前置"即跳过）
+
+```bash
+# 换掉写死的节点名，--pin-land 必须真的命中
+python3 submix.py build --front air.yaml --land new-land.yaml \
+  --rules rules/ai-meta.json --pin-land "<新节点名>" --dns-fallback -o test.yaml
+```
+
+终端必须打印 `落地置顶：xxx`，**没有这行就说明没命中**，会默认选第一个节点。
+
+```bash
+# 旧家的死账号对新家没意义，清空避免误伤同名节点
+gh secret set DEMOTE_IDS -R hutaoze177/submix --body ""
+```
+
+然后更新 workflow 里写死的 `--pin-land "<新节点名>"`，提交推送，再触发 rebuild。
+
+### 场景 C：整套重做（机场 + 落地都换）
+
+按 A → B 走一遍，另外注意：
+
+- `--pin-land` 是**唯一**把节点名写死进 workflow 的地方（`rebuild.yml` 第 22 行），别忘改
+- `rules/ai-meta.json` 里的组名 `前置-机场` / `落地-US-ISP` 是我们自己起的，**换服务商不用改**
+  （只有改组名时才要连 `raw` 规则一起改，见坑 8）
+- 落地 IP 对账号敏感的场景（Claude / Meta 登录），换家前先跟用户确认 —— 换家 = 换 IP，下游会看到
+
+### 回滚
+
+产物仓库保留了每次的完整历史，回到上一版只要：
+
+```bash
+git -C sub log --oneline -5          # 找到上一版
+git -C sub revert <commit> && git -C sub push
+```
+
+或直接把本地备份的旧 `sub.yaml` 推回去（`python3 submix.py push -f 旧文件 ...`）。
+
+### 换完自检表
+
+- [ ] `mihomo -t` 通过
+- [ ] 终端打印了 `落地置顶：<想要的节点>`
+- [ ] `curl -x` 测 `generate_204` 返回 `204`
+- [ ] `curl -x` 测 `api.anthropic.com` 返回 `401` / `405`（不是 `403` / `000`）
+- [ ] Actions run 绿色，节点数 / 规则数在预期范围
+- [ ] 客户端已更新订阅，实际出口 IP 符合预期
+
+---
+
+## 11. 安全与敏感信息
 
 - 产物 `sub.yaml` 含住宅代理的账号密码、机场节点凭据，**仓库必须 private**
 - token 只走环境变量 / `~/.gh_token`（600），**绝不写进代码、README、commit**
