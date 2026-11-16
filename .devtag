@@ -1,0 +1,10 @@
+# 本机设备标识（供 git 提交使用）
+# 由 dsh-littlecodesauce 于 2026-11-16 自动探测生成
+# 更换设备时删除本文件即可重新生成
+LABEL=android16-aarch64-8c15g-970G
+PLATFORM=aarch64
+KERNEL=6.12.69-android16-6-gb1493ec68d4a-abogki
+CPU_CORES=8
+MEM_GB=15
+DISK_SIZE=970G
+OS=Ubuntu 24.04.5 LTS
