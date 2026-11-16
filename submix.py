@@ -279,13 +279,35 @@ def build(args):
         cfg["dns"] = dns
 
     cfg["proxies"] = proxies
+
+    # 落地按地区拆组：避免 161 个混着南非/巴西/希腊的节点被手滑选中，
+    # 用美区账号登录时触发异地风控。默认只暴露"美区"组给规则使用。
+    us_prefixes = [x.strip() for x in (args.us_prefix or "").split(",") if x.strip()]
+    us_nodes, other_nodes = [], []
+    if args.split_land and us_prefixes:
+        for n in lnames:
+            if any(n.startswith(pfx) for pfx in us_prefixes):
+                us_nodes.append(n)
+            else:
+                other_nodes.append(n)
+        print(f"  落地分组：美区 {len(us_nodes)} 个 / 其他地区 {len(other_nodes)} 个")
+
+    if us_nodes:
+        land_groups = [
+            {"name": args.land_group, "type": "select", "proxies": us_nodes},
+        ]
+        if other_nodes:
+            land_groups.append({"name": f"{args.land_group}-其他", "type": "select",
+                                "proxies": other_nodes})
+    else:
+        land_groups = [{"name": args.land_group, "type": "select", "proxies": lnames}]
+
     cfg["proxy-groups"] = [
         {"name": args.front_group, "type": "select", "proxies": [args.auto_group] + fnames},
         {"name": args.auto_group, "type": "url-test",
          "url": "https://www.gstatic.com/generate_204", "interval": 300,
          "tolerance": 50, "lazy": True, "proxies": fnames},
-        {"name": args.land_group, "type": "select", "proxies": lnames},
-    ]
+    ] + land_groups
     cfg["rules"] = make_rules(args)
 
     out = args.output
@@ -399,6 +421,10 @@ def main():
                    help="给 nameserver 追加国内 DoH 兜底（前置 DNS 缺 nameserver 时用）")
     b.add_argument("--demote", action="append",
                    help="把名字/账号/服务器含该字符串的落地节点排到组末，可多次（已知死节点）")
+    b.add_argument("--split-land", action="store_true",
+                   help="落地拆成「主组(按前缀筛选)」+「主组-其他」两组，避免误选跨洲节点")
+    b.add_argument("--us-prefix", default="US-",
+                   help="主组匹配的节点名前缀，逗号分隔（默认 US-，可写 US-,CA-）")
 
     v = sub.add_parser("verify", help="用 mihomo 内核校验")
     v.add_argument("-f", "--file", required=True)

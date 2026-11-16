@@ -17,9 +17,18 @@ jobs:
           FRONT: ${{ secrets.FRONT_URL }}
           LAND: ${{ secrets.LAND_URL }}
           DEMOTE: ${{ secrets.DEMOTE_IDS }}
+          PIN: ${{ secrets.PIN_LAND }}
         run: |
           mkdir -p out
-          python3 submix.py build --front "$FRONT" --land "$LAND" --rules rules/ai-meta.json --pin-land "US-静态23" --demote "$DEMOTE" --dns-fallback -o out/sub.yaml
+          python3 submix.py build \
+            --front "$FRONT" \
+            --land "$LAND" \
+            --rules rules/ai-meta.json \
+            --pin-land "$PIN" \
+            --split-land --us-prefix "US-" \
+            --demote "$DEMOTE" \
+            --dns-fallback \
+            -o out/sub.yaml
       - name: Push
         env:
           GH_TOKEN: ${{ secrets.SUB_TOKEN }}
