@@ -1,5 +1,10 @@
 # submix — 链式代理订阅合成工具
 
+> ⚠️ **所有 AI / 协作者改动前必读 [`CONTRIBUTING.md`](CONTRIBUTING.md)**
+> 提交必须写明：**谁改的**（`git config user.name`）、**改了什么**、**为什么改**、**影响范围**。
+> 格式：`<type>: <标题>` + 正文三要素（原因 / 改动点 / 影响+验证）。
+
+
 把「前置机场」与「落地住宅」两份订阅合成一份 Clash/Mihomo 配置，用真内核校验后推送到
 GitHub 私有仓库，供 FlClash / Clash Verge / Clash Party 以订阅链接方式拉取。
 
