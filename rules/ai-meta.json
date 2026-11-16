@@ -1,5 +1,5 @@
 {
-  "_comment": "只有 AI 与 Meta 身份流量走住宅；Meta 的内容 CDN 也归住宅，避免同一 App 的 API/CDN IP 分叉；nodebuf.com 是虾蹬自家服务域名，按「只有 Claude/Muse 走住宅」的要求归机场（2026-11-14）；2026-11-16 补充 Gemini/AI Studio 及其他主流 AI 服务（均对 IP 敏感）",
+  "_comment": "只有 AI 与 Meta 身份流量走住宅；Meta 的内容 CDN 也归住宅，避免同一 App 的 API/CDN IP 分叉；nodebuf.com 是虾蹬自家服务域名，按「只有 Claude/Muse 走住宅」的要求归机场（2026-11-14）；2026-11-16 补充 Gemini/AI Studio 及其他主流 AI 服务（均对 IP 敏感）；2026-11-16 补充 [OI]/ChatGPT 全系（与 Claude 同等 IP 敏感）",
   "air": [
     "cdn.oculus.com",
     "cdn2.oculus.com",
@@ -79,7 +79,15 @@
     "character.ai",
     "janitorai.com",
     "manus.im",
-    "copilot.microsoft.com"
+    "copilot.microsoft.com",
+    "openai.com",
+    "chatgpt.com",
+    "chat.com",
+    "oaistatic.com",
+    "oaiusercontent.com",
+    "sora.com",
+    "platform.openai.com",
+    "auth0.openai.com"
   ],
   "raw": [
     "DOMAIN,sub.your-sub-provider.example,DIRECT",
