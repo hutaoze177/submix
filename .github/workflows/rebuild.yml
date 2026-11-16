@@ -25,7 +25,6 @@ jobs:
             --land "$LAND" \
             --rules rules/ai-meta.json \
             --pin-land "$PIN" \
-            --split-land --us-prefix "US-" \
             --demote "$DEMOTE" \
             --dns-fallback \
             -o out/sub.yaml
