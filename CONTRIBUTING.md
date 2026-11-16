@@ -36,6 +36,69 @@ git config user.name   # 必须输出你自己的标识
 
 ---
 
+## 1.5 必须标明设备（在哪台机器改的）
+
+多设备、多 AI 环境下，同一个仓库可能从不同机器提交。
+**每次提交必须带 `Device:` 行**，标明这次改动来自哪台设备。
+
+### 自动机制（已配置）
+
+本仓库已安装 `prepare-commit-msg` hook，**每次提交会自动追加**：
+
+```
+Device: android16-aarch64-8c15g-970G
+```
+
+新环境首次使用前先装 hook：
+
+```bash
+cd /root/workspace/submix
+./scripts/install-hooks.sh
+```
+
+### 设备标签来源
+
+标签由 `.devtag` 文件定义，探测方式：
+
+| 字段 | 含义 | 当前值 |
+|---|---|---|
+| `LABEL` | 主标识（平台-架构-核心-内存-磁盘） | `android16-aarch64-8c15g-970G` |
+| `PLATFORM` | CPU 架构 | `aarch64` |
+| `KERNEL` | 内核版本（含 Android 版本） | `6.12.69-android16-...` |
+| `CPU_CORES` | CPU 核心数 | `8` |
+| `MEM_GB` | 内存 GB | `15` |
+| `DISK_SIZE` | 根分区容量 | `970G` |
+| `OS` | 用户态系统 | `Ubuntu 24.04.5 LTS` |
+
+`.devtag` **需要提交进仓库**，这样别人能看到各设备的标签含义。
+
+### 换设备时
+
+1. 删除 `.devtag`
+2. 重新运行 `./scripts/install-hooks.sh` 或手工重建 `.devtag`
+3. 提交时 hook 会自动用新标签
+
+### 手工提交（不想用 hook 时）
+
+```bash
+./scripts/commit.sh "type: 标题" "正文说明"
+```
+脚本会自动补 `Device:` 行。
+
+### 为什么不用更细的硬件指纹
+
+| 信息 | 是否采集 | 原因 |
+|---|---|---|
+| 设备型号 / 品牌 | ❌ 采集不到 | proot 环境下 `getprop` 不可用，`build.prop` 不可读 |
+| IMEI / 序列号 / Android ID | ❌ 不采集 | 隐私敏感，且对追溯无必要 |
+| MAC 地址 | ❌ 不采集 | 同上 |
+| 架构 / 内核 / 内存 / 磁盘 | ✅ 采集 | 足以区分设备，且不涉及隐私 |
+
+> 当前标签 `android16-aarch64-8c15g-970G` 已经能唯一标识这台机器
+> （970G 存储 + 15G 内存 + Android 16 的组合很少见）。
+
+---
+
 ## 2. 提交信息格式（改了什么 + 为什么）
 
 ### 2.1 结构
@@ -170,10 +233,13 @@ update subscription via submix
 
 ## 6. 当前身份登记表
 
-| 标识 | 说明 | 首次提交 |
-|---|---|---|
-| `dsh <dsh@local>` | DSH 手机端默认（**应改为具名**） | — |
-| `hutaoze177` | 用户本人 / GitHub 网页操作 | — |
+| 标识 | 设备 | 说明 | 首次提交 |
+|---|---|---|---|
+| `dsh-littlecodesauce` | `android16-aarch64-8c15g-970G` | 小女仆（DSH 手机端） | `ec49c04` |
+| `dsh <dsh@local>` | 未知 | 早期匿名提交，无法区分 AI | `1e5bc8b` 起多条 |
+| `hutaoze177` | — | 用户本人 / GitHub 网页操作 | `01bb53c` |
+
+> 新增设备请追加一行，写明自己的 `user.name` 与 `Device:` 标签。
 
 > 接手的 AI 请在此表追加自己的一行，注明标识与首次提交的 commit hash。
 
@@ -184,6 +250,7 @@ update subscription via submix
 提交前逐项确认：
 
 - [ ] `git config user.name` 是我自己的标识，不是默认值
+- [ ] 提交信息末尾有 `Device:` 行（hook 已自动处理，确认没被手动覆盖）
 - [ ] 提交信息是 `<type>: <标题>` 格式
 - [ ] 正文写了**为什么改**
 - [ ] 正文列了**具体改动点**
