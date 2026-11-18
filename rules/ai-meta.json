@@ -90,7 +90,6 @@
     "auth0.openai.com"
   ],
   "raw": [
-    "DOMAIN,sub.your-sub-provider.example,DIRECT",
     "DOMAIN-SUFFIX,google.com,前置-机场",
     "DOMAIN-SUFFIX,googleapis.com,前置-机场",
     "DOMAIN-SUFFIX,gstatic.com,前置-机场",
