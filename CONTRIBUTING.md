@@ -149,15 +149,15 @@ cd /root/workspace/submix
 fix: 落地 pin 改为按 IP 锁定
 
 上游虾蹬订阅 2026-11-15 整体重编号，「US-静态23」这个名字
-从 203.0.113.1 变成了 203.0.113.2，导致 --pin-land 按名字
+从 <YOUR_LANDING_IP> 变成了 <OTHER_IP>，导致 --pin-land 按名字
 锁定失效，主人账号出口 IP 被意外更换。
 
 - submix.py: --pin-land 支持匹配 IP（原本也能，但 CI 传参写的是节点名）
-- workflow: PIN 改从 secrets.PIN_LAND 读取，值为 203.0.113.1
+- workflow: PIN 改从 secrets.PIN_LAND 读取，值为 <YOUR_LANDING_IP>
 - 新增 secret PIN_LAND
 
-影响: 落地默认节点锁定回 203.0.113.1，主人 Claude/Muse 账号 IP 不变
-验证: mihomo -t 通过；CI run #10 success；产物第 0 位确认是 203.0.113.1
+影响: 落地默认节点锁定回 <YOUR_LANDING_IP>，主人 Claude/Muse 账号 IP 不变
+验证: mihomo -t 通过；CI run #10 success；产物第 0 位确认是 <YOUR_LANDING_IP>
 ```
 
 ### ❌ 坏例子
