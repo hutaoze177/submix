@@ -1,5 +1,5 @@
 {
-  "_comment": "只有 AI 与 Meta 身份流量走住宅；Meta 的内容 CDN 也归住宅，避免同一 App 的 API/CDN IP 分叉；nodebuf.com 是虾蹬自家服务域名，按「只有 Claude/Muse 走住宅」的要求归机场（2026-11-14）；2026-11-16 补充 Gemini/AI Studio 及其他主流 AI 服务（均对 IP 敏感）；2026-11-16 补充 [OI]/ChatGPT 全系（与 Claude 同等 IP 敏感）",
+  "_comment": "只有 AI 与 Meta 身份流量走住宅；Meta 的内容 CDN 也归住宅，避免同一 App 的 API/CDN IP 分叉；nodebuf.com 是虾蹬自家服务域名，按「只有 Claude/Muse 走住宅」的要求归机场（2026-11-14）；2026-11-16 补充 Gemini/AI Studio 及其他主流 AI 服务（均对 IP 敏感）；2026-11-16 补充 [OI]/ChatGPT 全系（与 Claude 同等 IP 敏感）；gstatic/googleapis/googleusercontent 归落地，与 Gemini/AI Studio 保持同一出口（2026-11-20）",
   "air": [
     "cdn.oculus.com",
     "cdn2.oculus.com",
@@ -87,13 +87,13 @@
     "oaiusercontent.com",
     "sora.com",
     "platform.openai.com",
-    "auth0.openai.com"
+    "auth0.openai.com",
+    "gstatic.com",
+    "googleapis.com",
+    "googleusercontent.com"
   ],
   "raw": [
     "DOMAIN-SUFFIX,google.com,前置-机场",
-    "DOMAIN-SUFFIX,googleapis.com,前置-机场",
-    "DOMAIN-SUFFIX,gstatic.com,前置-机场",
-    "DOMAIN-SUFFIX,googleusercontent.com,前置-机场",
     "DOMAIN-SUFFIX,googlevideo.com,前置-机场",
     "DOMAIN-SUFFIX,youtube.com,前置-机场",
     "DOMAIN-SUFFIX,ytimg.com,前置-机场",
@@ -118,9 +118,6 @@
     "DOMAIN-SUFFIX,nflxext.com,前置-机场",
     "DOMAIN-SUFFIX,spotifycdn.com,前置-机场",
     "DOMAIN-SUFFIX,nodebuf.com,前置-机场",
-    "DOMAIN-SUFFIX,fonts.gstatic.com,前置-机场",
-    "DOMAIN-SUFFIX,www.gstatic.com,前置-机场",
-    "DOMAIN-SUFFIX,fonts.googleapis.com,前置-机场",
     "DOMAIN-SUFFIX,gvt1.com,前置-机场",
     "DOMAIN-SUFFIX,gvt2.com,前置-机场",
     "DOMAIN-SUFFIX,gmail.com,前置-机场",
