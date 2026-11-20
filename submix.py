@@ -326,6 +326,9 @@ def make_rules(args):
             spec = json.load(f)
 
     if spec:
+        # 直连白名单放最前：游戏等对延迟敏感、且国内可达的服务
+        for d in spec.get("direct", []):
+            rules.append(f"DOMAIN-SUFFIX,{d},DIRECT")
         # 机场优先的纯下载 CDN 放最前（先匹配先生效）
         for d in spec.get("air", []):
             rules.append(f"DOMAIN-SUFFIX,{d},{args.front_group}")

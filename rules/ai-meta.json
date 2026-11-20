@@ -119,5 +119,6 @@
     "DOMAIN-SUFFIX,spotifycdn.com,前置-机场",
     "DOMAIN-SUFFIX,nodebuf.com,前置-机场"
   ],
-  "match": "前置-机场"
+  "match": "前置-机场",
+  "direct": []
 }
