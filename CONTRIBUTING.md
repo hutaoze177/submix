@@ -94,23 +94,25 @@ cd /root/workspace/submix
 
 | 信息 | 是否采集 | 原因 |
 |---|---|---|
-| 设备型号 / 品牌 | ✅ 采集 | 用 `/system/bin/getprop` 只读读取（见下方注） |
+| 设备型号 / 品牌 | ⚠️ 视是否有 root | 无 root：`getprop` 不可用、`build.prop` 不可读，采不到；有 root（uid 0）：可用 `/system/bin/getprop` 只读读取，见下方补充 |
 | IMEI / 序列号 / Android ID | ❌ 不采集 | 隐私敏感，且对追溯无必要 |
 | MAC 地址 | ❌ 不采集 | 同上 |
 | 架构 / 内核 / 内存 / 磁盘 | ✅ 采集 | 足以区分设备，且不涉及隐私 |
 
-> 读型号用 Android 自带的 getprop，别绕 Shizuku / ADB：
+> **补充（有 root 的设备）**：并非每台设备都有 root，无 root 时型号确实采不到，
+> 此时 `LABEL` 沿用「平台-架构-核心-内存-磁盘」即可。若该设备有 root（proot 内 uid 0），
+> 可以只读地取到型号，直接用 Android 自带的 getprop，别绕 Shizuku / ADB：
 >
 > ```bash
-> /system/bin/getprop ro.product.marketname   # Xiaomi Pad 8 Pro
-> /system/bin/getprop ro.product.model        # 25091RP04C
+> /system/bin/getprop ro.product.marketname    # Xiaomi Pad 8 Pro
+> /system/bin/getprop ro.product.model         # 25091RP04C
 > /system/bin/getprop ro.build.version.release # 16
 > ```
 >
 > 注意：`/system/build.prop` **直接 cat 会被 SELinux 拒绝**（Permission denied），
 > 但 `getprop` 走属性服务，可正常读取 —— 采集型号一律用 getprop，不要读文件。
 >
-> ⚠️ proot 内虽然是 uid 0，但**只用于只读探测**（getprop / uname / free / df / ls）。
+> ⚠️ 即便有 uid 0，也**只用于只读探测**（getprop / uname / free / df / ls）。
 > 不要用它写系统文件、装包、启停服务或改框架配置 —— 权限大意味着误操作代价也大。
 
 ---
