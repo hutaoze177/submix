@@ -46,7 +46,7 @@ git config user.name   # 必须输出你自己的标识
 本仓库已安装 `prepare-commit-msg` hook，**每次提交会自动追加**：
 
 ```
-Device: android16-aarch64-8c15g-970G
+Device: mi8padpro
 ```
 
 新环境首次使用前先装 hook：
@@ -62,12 +62,17 @@ cd /root/workspace/submix
 
 | 字段 | 含义 | 当前值 |
 |---|---|---|
-| `LABEL` | 主标识（平台-架构-核心-内存-磁盘） | `android16-aarch64-8c15g-970G` |
+| `LABEL` | 主标识（设备简称） | `mi8padpro` |
+| `MODEL` | 市场型号 | `Xiaomi Pad 8 Pro` |
+| `MODEL_CODE` | 型号代码 | `25091RP04C` |
+| `DEVICE` | 设备代号 | `piano` |
+| `BRAND` | 品牌 | `Xiaomi` |
+| `ANDROID` | Android 版本 | `16 (SDK 36)` |
 | `PLATFORM` | CPU 架构 | `aarch64` |
-| `KERNEL` | 内核版本（含 Android 版本） | `6.12.69-android16-...` |
+| `KERNEL` | 内核版本（含 Android 版本） | `6.6.77-android15-...` |
 | `CPU_CORES` | CPU 核心数 | `8` |
-| `MEM_GB` | 内存 GB | `15` |
-| `DISK_SIZE` | 根分区容量 | `970G` |
+| `MEM_GB` | 内存 GB | `22` |
+| `DISK_SIZE` | 根分区容量 | `971G` |
 | `OS` | 用户态系统 | `Ubuntu 24.04.5 LTS` |
 
 `.devtag` **需要提交进仓库**，这样别人能看到各设备的标签含义。
@@ -89,13 +94,21 @@ cd /root/workspace/submix
 
 | 信息 | 是否采集 | 原因 |
 |---|---|---|
-| 设备型号 / 品牌 | ❌ 采集不到 | proot 环境下 `getprop` 不可用，`build.prop` 不可读 |
+| 设备型号 / 品牌 | ✅ 采集 | proot 内是 uid 0，直接调 `/system/bin/getprop` 即可（见下方注） |
 | IMEI / 序列号 / Android ID | ❌ 不采集 | 隐私敏感，且对追溯无必要 |
 | MAC 地址 | ❌ 不采集 | 同上 |
 | 架构 / 内核 / 内存 / 磁盘 | ✅ 采集 | 足以区分设备，且不涉及隐私 |
 
-> 当前标签 `android16-aarch64-8c15g-970G` 已经能唯一标识这台机器
-> （970G 存储 + 15G 内存 + Android 16 的组合很少见）。
+> 读型号用 Android 自带的 getprop，别绕 Shizuku / ADB：
+>
+> ```bash
+> /system/bin/getprop ro.product.marketname   # Xiaomi Pad 8 Pro
+> /system/bin/getprop ro.product.model        # 25091RP04C
+> /system/bin/getprop ro.build.version.release # 16
+> ```
+>
+> 注意：`/system/build.prop` **直接 cat 会被 SELinux 拒绝**（Permission denied），
+> 但 `getprop` 走属性服务，可正常读取 —— 采集型号一律用 getprop，不要读文件。
 
 ---
 
@@ -235,7 +248,8 @@ update subscription via submix
 
 | 标识 | 设备 | 说明 | 首次提交 |
 |---|---|---|---|
-| `dsh-littlecodesauce` | `android16-aarch64-8c15g-970G` | 小女仆（DSH 手机端） | `ec49c04` |
+| `dsh-littlecodesauce` | `mi8padpro`（Xiaomi Pad 8 Pro / Android 16） | 小女仆（DSH 手机端） | `ec49c04` |
+| `dsh-littlecodesauce` | `android16-aarch64-8c15g-970G` | 小女仆早前设备（已退役） | `ec49c04` |
 | `dsh <dsh@local>` | 未知 | 早期匿名提交，无法区分 AI | `1e5bc8b` 起多条 |
 | `hutaoze177` | — | 用户本人 / GitHub 网页操作 | `01bb53c` |
 
