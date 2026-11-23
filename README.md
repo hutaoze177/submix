@@ -78,6 +78,7 @@ python3 submix.py build \
 | `--land-group` | `落地-US-ISP` | 落地组名 |
 | `--pin-land` | 无 | 把名字**含该子串**的落地节点排到组首（锁出口 IP，可命中多个） |
 | `--demote` | 无 | 把名字 / `username`（账号 ID）/ `server` **含该子串**的落地节点排到组末，**可重复**。用于账号已 suspended 或长期超时的死节点 |
+| `--drop-front` | 无 | 剔除名字**含该子串**的前置节点，**可重复 / 逗号分隔**。用于低倍率诱饵节点——它们带宽差却会被 `url-test` 选中 |
 | `--port` | `7890` | mixed-port |
 | `--dns-fallback` | 关 | 给 `nameserver` 追加国内 DoH 兜底并在末尾加 `1.1.1.1#前置组` |
 
@@ -388,6 +389,7 @@ curl -x http://127.0.0.1:7890 -o /dev/null -w "%{http_code}\n" https://api.anthr
 |---|---|
 | 新增漏网域名 | 改 `rules/ai-meta.json` 的 `land`/`air` → build → verify → push |
 | 换默认落地 IP | 改 `--pin-land` 关键字；**先跟用户确认**，换 IP 会让 AI 账号看到变更 |
+| 机场里有没用的节点 | 加 `--drop-front "<名字特征>"`（如 `"0.1倍率"`）直接剔除，否则 `url-test` 会选中它 |
 | 单个节点坏了 | 加 `--demote "<节点名或账号ID>"` 排到组末，**比删节点安全**（订阅更新后还在） |
 | 整块账号坏了 | `--demote "hl_xxxxxxxx"`（账号 ID 在节点 `username` 里），一次排掉该账号全部节点 |
 | 精简死节点 | 按第 8 节测完，从落地快照 `land.yaml` 删掉再 build |

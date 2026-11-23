@@ -205,6 +205,22 @@ def build(args):
     if not land_nodes:
         sys.exit("落地订阅里没有节点")
 
+    # 前置节点过滤：低倍率诱饵节点带宽差但仍会被 url-test 选中，直接从池里剔除
+    drop_kw = []
+    for chunk in (args.drop_front or []):
+        for kw in str(chunk).split(","):
+            kw = kw.strip()
+            if kw and kw not in drop_kw:
+                drop_kw.append(kw)
+    if drop_kw:
+        before = len(front_nodes)
+        front_nodes = [p for p in front_nodes
+                       if not any(kw in str(p.get("name", "")) for kw in drop_kw)]
+        dropped = before - len(front_nodes)
+        print(f"  前置过滤：剔除 {dropped} 个（命中 {', '.join(drop_kw)}）")
+        if not front_nodes:
+            sys.exit("前置节点被 --drop-front 过滤光了，检查关键字")
+
     # 落地节点统一注入 dialer-proxy；如落地源自带的组引用了它自己，这里直接覆盖
     land_clean = []
     for p in land_nodes:
@@ -426,6 +442,8 @@ def main():
     b.add_argument("--port", type=int, default=7890)
     b.add_argument("--dns-fallback", action="store_true",
                    help="给 nameserver 追加国内 DoH 兜底（前置 DNS 缺 nameserver 时用）")
+    b.add_argument("--drop-front", action="append",
+                   help="剔除名字含该字符串的前置节点，可多次/逗号分隔（低倍率诱饵节点）")
     b.add_argument("--demote", action="append",
                    help="把名字/账号/服务器含该字符串的落地节点排到组末，可多次（已知死节点）")
     b.add_argument("--split-land", action="store_true",

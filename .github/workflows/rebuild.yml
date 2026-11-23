@@ -28,6 +28,7 @@ jobs:
             --rules rules/ai-meta.json \
             --pin-land "$PIN" \
             --demote "$DEMOTE" \
+            --drop-front "0.1倍率" \
             --dns-fallback \
             -o out/sub.yaml
 
@@ -44,6 +45,7 @@ jobs:
             --rules rules/ai-meta.json \
             --pin-land "$PIN" \
             --demote "$DEMOTE" \
+            --drop-front "0.1倍率" \
             --dns-fallback \
             --match "落地-US-ISP" \
             -o out/sub-all-landing.yaml
