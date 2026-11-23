@@ -340,6 +340,10 @@ def make_rules(args):
     else:
         match = args.front_group
 
+    # 命令行 --match 优先于模板，用于生成"全走某组"的变体配置
+    if getattr(args, "match", None):
+        match = args.match
+
     rules.append("GEOSITE,private,DIRECT")
     rules.append("GEOIP,LAN,DIRECT,no-resolve")
     rules.append("GEOSITE,cn,DIRECT")
@@ -428,6 +432,8 @@ def main():
                    help="落地拆成「主组(按前缀筛选)」+「主组-其他」两组，避免误选跨洲节点")
     b.add_argument("--us-prefix", default="US-",
                    help="主组匹配的节点名前缀，逗号分隔（默认 US-，可写 US-,CA-）")
+    b.add_argument("--match",
+                   help="覆盖 MATCH 兜底指向的组名（如 落地-US-ISP 生成全走落地变体）")
 
     v = sub.add_parser("verify", help="用 mihomo 内核校验")
     v.add_argument("-f", "--file", required=True)

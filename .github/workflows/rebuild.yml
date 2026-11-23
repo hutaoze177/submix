@@ -13,7 +13,8 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install pyyaml
-      - name: Build
+
+      - name: Build normal (MATCH -> airport)
         env:
           FRONT: ${{ secrets.FRONT_URL }}
           LAND: ${{ secrets.LAND_URL }}
@@ -29,7 +30,30 @@ jobs:
             --demote "$DEMOTE" \
             --dns-fallback \
             -o out/sub.yaml
-      - name: Push
+
+      - name: Build all-landing variant (MATCH -> landing)
+        env:
+          FRONT: ${{ secrets.FRONT_URL }}
+          LAND: ${{ secrets.LAND_URL }}
+          DEMOTE: ${{ secrets.DEMOTE_IDS }}
+          PIN: ${{ secrets.PIN_LAND }}
+        run: |
+          python3 submix.py build \
+            --front "$FRONT" \
+            --land "$LAND" \
+            --rules rules/ai-meta.json \
+            --pin-land "$PIN" \
+            --demote "$DEMOTE" \
+            --dns-fallback \
+            --match "落地-US-ISP" \
+            -o out/sub-all-landing.yaml
+
+      - name: Push normal
         env:
           GH_TOKEN: ${{ secrets.SUB_TOKEN }}
         run: python3 submix.py push -f out/sub.yaml --repo hutaoze177/sub --path sub.yaml
+
+      - name: Push all-landing
+        env:
+          GH_TOKEN: ${{ secrets.SUB_TOKEN }}
+        run: python3 submix.py push -f out/sub-all-landing.yaml --repo hutaoze177/sub --path sub-all-landing.yaml
