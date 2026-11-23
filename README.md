@@ -167,7 +167,32 @@ GH_TOKEN=ghp_xxx python3 submix.py push \
 
 ## 5. 产物长什么样
 
-以下是实测数字（前置 32 + 落地 174 = **206 节点 / 86 规则 / ≈70 KB**）：
+### 可以同时产出两份并列订阅
+
+`build` 一次产出一份。要同时维护「日常版」和「全走落地应急版」时，同一份订阅源跑两遍，
+用 `--match` 指定不同的兜底组：
+
+```bash
+# 日常版：AI/Meta 走住宅，其余走机场
+python3 submix.py build --front ... --land ... --rules rules/ai-meta.json \
+  -o out/sub.yaml
+
+# 应急版：所有国外流量走住宅（流量按 GB 计费，仅临时用）
+python3 submix.py build --front ... --land ... --rules rules/ai-meta.json \
+  --match "落地-US-ISP" -o out/sub-all-landing.yaml
+```
+
+两份**除最后一行 `MATCH` 外逐字节相同**（节点、组、其余规则完全一致）。
+产物仓库（私有）的说明模板见 [`docs/sub-repo-README.md`](docs/sub-repo-README.md)，
+里面写清了两份的用途差异，防止接手者把应急版当成废弃文件。
+
+### 结构示例
+
+以下为早期实测数字，**实际节点数随上游订阅变化**（曾观测到 206 → 236 → 285）：
+
+```
+前置 32 + 落地 174 = 206 节点 / 86 规则 / ≈70 KB
+```
 
 ```
 proxies
