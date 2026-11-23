@@ -94,7 +94,7 @@ cd /root/workspace/submix
 
 | 信息 | 是否采集 | 原因 |
 |---|---|---|
-| 设备型号 / 品牌 | ✅ 采集 | proot 内是 uid 0，直接调 `/system/bin/getprop` 即可（见下方注） |
+| 设备型号 / 品牌 | ✅ 采集 | 用 `/system/bin/getprop` 只读读取（见下方注） |
 | IMEI / 序列号 / Android ID | ❌ 不采集 | 隐私敏感，且对追溯无必要 |
 | MAC 地址 | ❌ 不采集 | 同上 |
 | 架构 / 内核 / 内存 / 磁盘 | ✅ 采集 | 足以区分设备，且不涉及隐私 |
@@ -109,6 +109,9 @@ cd /root/workspace/submix
 >
 > 注意：`/system/build.prop` **直接 cat 会被 SELinux 拒绝**（Permission denied），
 > 但 `getprop` 走属性服务，可正常读取 —— 采集型号一律用 getprop，不要读文件。
+>
+> ⚠️ proot 内虽然是 uid 0，但**只用于只读探测**（getprop / uname / free / df / ls）。
+> 不要用它写系统文件、装包、启停服务或改框架配置 —— 权限大意味着误操作代价也大。
 
 ---
 
