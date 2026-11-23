@@ -24,4 +24,18 @@ fi
 printf '\nDevice: %s\n' "$DEVICE" >> "$MSG_FILE"
 HOOK
 chmod +x "$REPO/hooks/prepare-commit-msg"
+
+# 脱敏拦截：提交前扫描暂存内容，命中敏感信息直接拒绝
+cat > "$REPO/hooks/pre-commit" <<'HOOK2'
+#!/bin/sh
+# 公开仓库脱敏拦截（由 scripts/install-hooks.sh 安装）
+ROOT=$(git rev-parse --show-toplevel)
+[ -x "$ROOT/scripts/check-secrets.sh" ] || exit 0
+STAGED=$(git diff --cached --name-only --diff-filter=ACM)
+[ -z "$STAGED" ] && exit 0
+cd "$ROOT" && ./scripts/check-secrets.sh $STAGED
+HOOK2
+chmod +x "$REPO/hooks/pre-commit"
+
 echo "✅ hook 已安装: $REPO/hooks/prepare-commit-msg"
+echo "✅ hook 已安装: $REPO/hooks/pre-commit（脱敏拦截）"
